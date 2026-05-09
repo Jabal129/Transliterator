@@ -35,7 +35,9 @@ def load_araboji():
     if _japanese_to_arabic is None:
         try:
             from Araboji import japanese_to_arabic as _japan_func, load_mapping as _load_map
-            _araboji_mapping = _load_map("mapping.xlsx")
+            import os
+            mapping_path = os.path.join(os.path.dirname(__file__), "mapping.xlsx")
+            _araboji_mapping = _load_map(mapping_path)
             _japanese_to_arabic = _japan_func
         except Exception as exc:
             _araboji_load_error = exc
