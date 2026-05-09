@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     mecab \
     libmecab-dev \
   && pip install --no-cache-dir -r requirements.txt \
-  && python -c "import fugashi; print('fugashi', fugashi.__version__)" \
+  && python -c "import fugashi; print('fugashi OK')" \
   && apt-get remove -y build-essential python3-dev pkg-config \
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
