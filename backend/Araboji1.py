@@ -13,18 +13,12 @@ from pykakasi import kakasi
 # 1️⃣ Load Excel Mapping
 # ==========================
 
-def load_mapping(excel_path):
+def load_mapping(excel_path: str) -> dict:
     df = pd.read_excel(excel_path)
-
-    # Remove empty rows
     df = df.dropna(subset=["Romaji", "Arabic"])
-
-    # Convert to string and strip spaces
     df["Romaji"] = df["Romaji"].astype(str).str.strip().str.lower()
     df["Arabic"] = df["Arabic"].astype(str).str.strip()
-
-    mapping = dict(zip(df["Romaji"], df["Arabic"]))
-    return mapping
+    return dict(zip(df["Romaji"], df["Arabic"]))
 
 
 # ==========================
@@ -34,7 +28,8 @@ def load_mapping(excel_path):
 tagger = Tagger()
 kks = kakasi()
 
-def japanese_to_romaji(text):
+
+def japanese_to_romaji(text: str) -> str:
     tokens = list(tagger(text))
     romaji_words = []
     i = 0
@@ -43,9 +38,8 @@ def japanese_to_romaji(text):
         token = tokens[i]
         reading = token.feature.kana
 
-        # Normalize reading to avoid script or encoding issues
         if reading:
-            reading = unicodedata.normalize('NFKC', reading)
+            reading = unicodedata.normalize("NFKC", reading)
 
         # Case 1: No reading (punctuation, symbols, etc.) → keep surface form
         if reading is None:
@@ -53,36 +47,36 @@ def japanese_to_romaji(text):
             i += 1
             continue
 
-        # Case 2: Current token ends with small tsu (either hiragana or katakana)
-        if reading.endswith(('っ', 'ッ')) and i + 1 < len(tokens):
+        # Case 2: Token ends with small tsu → geminate the next consonant
+        if reading.endswith(("っ", "ッ")) and i + 1 < len(tokens):
             next_token = tokens[i + 1]
             next_reading = next_token.feature.kana
             if next_reading:
-                next_reading = unicodedata.normalize('NFKC', next_reading)
+                next_reading = unicodedata.normalize("NFKC", next_reading)
                 combined = reading + next_reading
                 converted = kks.convert(combined)
-                romaji = "".join([item['hepburn'] for item in converted])
+                romaji = "".join(item["hepburn"] for item in converted)
                 romaji_words.append(romaji.lower())
-                i += 2  # Skip next token
+                i += 2
                 continue
 
-        # Case 3: Next token is standalone ん (hiragana or katakana)
+        # Case 3: Merge standalone ん / ン with the preceding token
         if i + 1 < len(tokens):
             next_token = tokens[i + 1]
             next_reading = next_token.feature.kana
             if next_reading:
-                next_reading = unicodedata.normalize('NFKC', next_reading)
-                if next_reading in ('ん', 'ン'):
+                next_reading = unicodedata.normalize("NFKC", next_reading)
+                if next_reading in ("ん", "ン"):
                     combined = reading + next_reading
                     converted = kks.convert(combined)
-                    romaji = "".join([item['hepburn'] for item in converted])
+                    romaji = "".join(item["hepburn"] for item in converted)
                     romaji_words.append(romaji.lower())
                     i += 2
                     continue
 
         # Default: convert current token alone
         converted = kks.convert(reading)
-        romaji = "".join([item['hepburn'] for item in converted])
+        romaji = "".join(item["hepburn"] for item in converted)
         romaji_words.append(romaji.lower())
         i += 1
 
@@ -93,18 +87,13 @@ def japanese_to_romaji(text):
 # 3️⃣ Romaji → Arabic
 # ==========================
 
-def arabize_romaji(romaji_text, mapping):
+def arabize_romaji(romaji_text: str, mapping: dict) -> str:
+    VOWELS = ("a", "i", "u", "e", "o")
+    keys = sorted(mapping.keys(), key=len, reverse=True)  # longest-match first
     result_words = []
 
-    # Sort keys by length descending for longest match first
-    keys = sorted(mapping.keys(), key=len, reverse=True)
-    vowels = ("a", "i", "u", "e", "o")
-
-    # Split by spaces to handle word-by-word
-    words = romaji_text.split(" ")
-
-    for word in words:
-        i = len(word) - 1  # Start from last letter
+    for word in romaji_text.split():
+        i = len(word) - 1
         arabic_word = ""
 
         while i >= 0:
@@ -114,21 +103,24 @@ def arabize_romaji(romaji_text, mapping):
                 start = i - len(key) + 1
                 if start < 0:
                     continue
-                segment = word[start:i+1]
 
-                # Handle standalone 'n' correctly
+                segment = word[start : i + 1]
+
+                # Standalone 'n': don't consume it if followed by a vowel or 'y'
                 if key == "n":
-                    if start + 1 < len(word) and (word[start+1] in vowels or word[start+1] == 'y'):
+                    next_pos = start + 1
+                    if next_pos < len(word) and (
+                        word[next_pos] in VOWELS or word[next_pos] == "y"
+                    ):
                         continue
 
                 if segment == key:
-                    arabic_word = mapping[key] + arabic_word  # prepend since we're moving backward
+                    arabic_word = mapping[key] + arabic_word
                     i -= len(key)
                     matched = True
                     break
 
             if not matched:
-                # keep unknown chars
                 arabic_word = word[i] + arabic_word
                 i -= 1
 
@@ -141,7 +133,8 @@ def arabize_romaji(romaji_text, mapping):
 # 4️⃣ Full Pipeline
 # ==========================
 
-def japanese_to_arabic(text, mapping):
+def japanese_to_arabic(text: str, mapping: dict) -> tuple[str, str]:
+    """Return (romaji, arabic) for the given Japanese text."""
     romaji = japanese_to_romaji(text)
     arabic = arabize_romaji(romaji, mapping)
     return romaji, arabic
