@@ -70,6 +70,34 @@ kks = kakasi()
 
 
 def japanese_to_romaji(text):
+    # Convert katakana to hiragana for consistent processing
+    katakana_hiragana_map = {
+        'ア': 'あ', 'イ': 'い', 'ウ': 'う', 'エ': 'え', 'オ': 'お',
+        'カ': 'か', 'キ': 'き', 'ク': 'く', 'ケ': 'け', 'コ': 'こ',
+        'サ': 'さ', 'シ': 'し', 'ス': 'す', 'セ': 'せ', 'ソ': 'そ',
+        'タ': 'た', 'チ': 'ち', 'ツ': 'つ', 'テ': 'て', 'ト': 'と',
+        'ナ': 'な', 'ニ': 'に', 'ヌ': 'ぬ', 'ネ': 'ね', 'ノ': 'の',
+        'ハ': 'は', 'ヒ': 'ひ', 'フ': 'ふ', 'ヘ': 'へ', 'ホ': 'ほ',
+        'マ': 'ま', 'ミ': 'み', 'ム': 'む', 'メ': 'め', 'モ': 'も',
+        'ヤ': 'や', 'ユ': 'ゆ', 'ヨ': 'よ',
+        'ラ': 'ら', 'リ': 'り', 'ル': 'る', 'レ': 'れ', 'ロ': 'ろ',
+        'ワ': 'わ', 'ヲ': 'を', 'ン': 'ん',
+        'ガ': 'が', 'ギ': 'ぎ', 'グ': 'ぐ', 'ゲ': 'げ', 'ゴ': 'ご',
+        'ザ': 'ざ', 'ジ': 'じ', 'ズ': 'ず', 'ゼ': 'ぜ', 'ゾ': 'ぞ',
+        'ダ': 'だ', 'ヂ': 'ぢ', 'ヅ': 'づ', 'デ': 'で', 'ド': 'ど',
+        'バ': 'ば', 'ビ': 'び', 'ブ': 'ぶ', 'ベ': 'べ', 'ボ': 'ぼ',
+        'パ': 'ぱ', 'ピ': 'ぴ', 'プ': 'ぷ', 'ペ': 'ぺ', 'ポ': 'ぽ',
+        'ッ': 'っ', 'ャ': 'ゃ', 'ュ': 'ゅ', 'ョ': 'ょ', 'ァ': 'ぁ',
+        'ィ': 'ぃ', 'ゥ': 'ぅ', 'ェ': 'ぇ', 'ォ': 'ぉ'
+    }
+    
+    # Replace katakana with hiragana
+    for katakana, hiragana in katakana_hiragana_map.items():
+        text = text.replace(katakana, hiragana)
+    
+    # Remove apostrophes used in katakana romanization (they interfere with conversion)
+    text = text.replace("'", "").replace("・", "")
+    
     tagger = get_tagger()
     tokens = list(tagger(text))
     romaji_words = []
@@ -130,6 +158,9 @@ def japanese_to_romaji(text):
 
 def arabize_romaji(romaji_text, mapping):
     result_words = []
+
+    # Remove apostrophes that appear in romanization (e.g., from furigana or special marks)
+    romaji_text = romaji_text.replace("'", "").replace("·", "")
 
     # Sort keys by length descending for longest match first
     keys = sorted(mapping.keys(), key=len, reverse=True)
