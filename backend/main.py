@@ -1,167 +1,83 @@
-"""
-FastAPI backend for the Arabic Transliterator web app.
-
-Run with:
-    uvicorn main:app --reload --port 8000
-
-Dependencies:
-    pip install fastapi uvicorn python-multipart pandas openpyxl
-    pip install fugashi pykakasi unidic-lite
-    pip install python-telegram-bot nest_asyncio
-    # Your local modules: Aljamiado, Xiaoerjing, Araboji, Soagyeong, Tieunhikinh
-"""
-
-import os
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, field_validator
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+import os
 
-from Araboji import japanese_to_arabic, load_mapping
-from Xiaoerjing import combine_pinyin_with_tones, clean_string
 from Aljamiado import convert_to_aljamiado
+from Xiaoerjing import combine_pinyin_with_tones, clean_string
 from Soagyeong import korean_to_arabic, adjust_arabic_output
 from Tieunhikinh import transliterate_vietnamese_to_arabic
 
+app = FastAPI()
 
-# ---------------------------------------------------------------------------
-# Startup: load heavy resources once
-# ---------------------------------------------------------------------------
-
-mapping: dict = {}
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global mapping
-    mapping_path = os.getenv("MAPPING_PATH", "mapping.xlsx")
-    try:
-        mapping = load_mapping(mapping_path)
-        print(f"[startup] Loaded {len(mapping)} romaji→Arabic entries from {mapping_path}")
-    except FileNotFoundError:
-        print(f"[startup] WARNING: {mapping_path} not found — Japanese transliteration will fail.")
-    yield
-    # (cleanup on shutdown goes here if needed)
-
-
-# ---------------------------------------------------------------------------
-# App
-# ---------------------------------------------------------------------------
-
-app = FastAPI(
-    title="Arabic Transliterator API",
-    description="Transliterate Spanish, Chinese, Japanese, Korean, Vietnamese → Arabic script.",
-    version="1.0.0",
-    lifespan=lifespan,
-)
+# Configure CORS based on environment
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=allowed_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Lazy load Japanese transliteration so the app can still start if fugashi is missing
+_araboji_mapping = None
+_japanese_to_arabic = None
+_araboji_load_error = None
 
-# ---------------------------------------------------------------------------
-# Transliterators registry
-# ---------------------------------------------------------------------------
 
-SUPPORTED_LANGUAGES = {
-    "الإسبانية",
-    "الصينية",
-    "اليابانية",
-    "الكورية",
-    "الفيتنامية",
+def load_araboji():
+    global _araboji_mapping, _japanese_to_arabic, _araboji_load_error
+    if _araboji_load_error is not None:
+        raise _araboji_load_error
+    if _japanese_to_arabic is None:
+        try:
+            from Araboji import japanese_to_arabic as _japan_func, load_mapping as _load_map
+            import os
+            mapping_path = os.path.join(os.path.dirname(__file__), "mapping.xlsx")
+            _araboji_mapping = _load_map(mapping_path)
+            _japanese_to_arabic = _japan_func
+        except Exception as exc:
+            _araboji_load_error = exc
+            raise
+    return _japanese_to_arabic, _araboji_mapping
+
+
+def araboji_text(text):
+    func, mapping = load_araboji()
+    return func(text, mapping)
+
+
+languages = {
+    'aljamiado': convert_to_aljamiado,
+    'xiaoerjing': lambda text: clean_string(combine_pinyin_with_tones(text)),
+    'araboji': araboji_text,
+    'soagyeong': lambda text: adjust_arabic_output(korean_to_arabic(text)),
+    'tieunhikinh': transliterate_vietnamese_to_arabic
 }
 
-
-def transliterate_chinese(text: str) -> str:
-    return clean_string(combine_pinyin_with_tones(text))
-
-
-def transliterate_korean(text: str) -> str:
-    return adjust_arabic_output(korean_to_arabic(text))
-
-
-def transliterate_japanese(text: str) -> str:
-    if not mapping:
-        raise RuntimeError("mapping.xlsx was not loaded at startup.")
-    result = japanese_to_arabic(text, mapping)
-    return result[1]
-
-
-def get_transliterator(language: str):
-    transliterators = {
-        "الإسبانية":   convert_to_aljamiado,
-        "الصينية":    transliterate_chinese,
-        "اليابانية":  transliterate_japanese,
-        "الكورية":    transliterate_korean,
-        "الفيتنامية": transliterate_vietnamese_to_arabic,
-    }
-    return transliterators.get(language)
-
-
-# ---------------------------------------------------------------------------
-# Schemas
-# ---------------------------------------------------------------------------
-
-class TransliterateRequest(BaseModel):
-    text: str
-    language: str
-
-    @field_validator("text")
-    @classmethod
-    def text_not_empty(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
-            raise ValueError("text must not be empty.")
-        if len(v) > 5000:
-            raise ValueError("text must be 5000 characters or fewer.")
-        return v
-
-    @field_validator("language")
-    @classmethod
-    def language_supported(cls, v: str) -> str:
-        if v not in SUPPORTED_LANGUAGES:
-            raise ValueError(f"Unsupported language '{v}'. Choose from: {', '.join(SUPPORTED_LANGUAGES)}")
-        return v
-
-
-class TransliterateResponse(BaseModel):
-    result: str
-    language: str
-
-
-# ---------------------------------------------------------------------------
-# Routes
-# ---------------------------------------------------------------------------
-
-@app.get("/health", tags=["meta"])
-def health():
-    """Quick liveness check used by the frontend status indicator."""
-    return {"status": "ok", "mapping_loaded": bool(mapping)}
-
-
-@app.get("/languages", tags=["meta"])
-def languages():
-    """Return the list of supported languages."""
-    return {"languages": sorted(SUPPORTED_LANGUAGES)}
-
-
-@app.post("/transliterate", response_model=TransliterateResponse, tags=["core"])
-def transliterate(req: TransliterateRequest):
-    """
-    Transliterate text from the given language into Arabic script.
-    """
-    fn = get_transliterator(req.language)
-    if fn is None:
-        raise HTTPException(status_code=400, detail=f"Language '{req.language}' is not supported.")
-
+@app.post("/api/transliterate")
+async def transliterate(data: dict):
+    text = data.get('text')
+    language = data.get('language')
+    if not text or not language:
+        raise HTTPException(status_code=400, detail="Missing text or language")
+    func = languages.get(language.lower())
+    if not func:
+        raise HTTPException(status_code=400, detail="Unsupported language")
     try:
-        result = fn(req.text)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Transliteration failed: {exc}") from exc
+        result = func(text)
+        return {"result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    return TransliterateResponse(result=result, language=req.language)
+@app.get("/api/health")
+async def health():
+    return {"status": "ok"}
+
+# Serve static files (React frontend)
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
