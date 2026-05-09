@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 from pykakasi import kakasi
 from telegram import Update
@@ -163,7 +164,7 @@ def arabize_romaji(romaji_text, mapping):
 def japanese_to_arabic(text, mapping):
     romaji = japanese_to_romaji(text)
     arabic = arabize_romaji(romaji, mapping)
-    arabic = arabic.replace("nاً", "نً")
+    arabic = re.sub(r"n([ًٌٍ])", r"ن\1", arabic)
     return romaji, arabic
 
 
