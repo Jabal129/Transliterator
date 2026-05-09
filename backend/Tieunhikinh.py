@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 import re
+from punctuation_helper import preserve_and_process
 
 def transliterate_vietnamese_to_arabic(sentence):
     # Mappings for consonants, vowels, and tones

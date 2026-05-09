@@ -47,7 +47,7 @@ def load_araboji():
 
 def araboji_text(text):
     func, mapping = load_araboji()
-    return func(text, mapping)[1]
+    return func(text, mapping)
 
 
 languages = {

@@ -6,6 +6,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import nest_asyncio
 import asyncio
 import unicodedata
+from punctuation_helper import preserve_and_process
 
 try:
     from fugashi import Tagger
@@ -176,11 +177,20 @@ def arabize_romaji(romaji_text, mapping):
 # 4️⃣ Full Pipeline
 # ==========================
 
-def japanese_to_arabic(text, mapping):
-    romaji = japanese_to_romaji(text)
+def japanese_to_arabic_word(japanese_word, mapping):
+    """Convert a single Japanese word (no punctuation) to Arabic."""
+    romaji = japanese_to_romaji(japanese_word)
     arabic = arabize_romaji(romaji, mapping)
     arabic = re.sub(r"n(?=[\u064B-\u0652])", "ن", arabic)
-    return romaji, arabic
+    return arabic
+
+
+def japanese_to_arabic(text, mapping):
+    """Convert Japanese text to Arabic while preserving punctuation."""
+    def process_word(word):
+        return japanese_to_arabic_word(word, mapping)
+    
+    return preserve_and_process(text, process_word)
 
 
 # ==========================
