@@ -163,6 +163,7 @@ def arabize_romaji(romaji_text, mapping):
 def japanese_to_arabic(text, mapping):
     romaji = japanese_to_romaji(text)
     arabic = arabize_romaji(romaji, mapping)
+    arabic = arabic.replace("nاً", "نً")
     return romaji, arabic
 
 
