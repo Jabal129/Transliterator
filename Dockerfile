@@ -12,7 +12,17 @@ WORKDIR /app
 
 # Copy backend requirements and install
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    python3-dev \
+    pkg-config \
+    mecab \
+    libmecab-dev \
+  && pip install --no-cache-dir -r requirements.txt \
+  && python -c "import fugashi; print('fugashi', fugashi.__version__)" \
+  && apt-get remove -y build-essential python3-dev pkg-config \
+  && apt-get autoremove -y \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy backend code
 COPY backend/ .

@@ -6,3 +6,5 @@ pykakasi
 hangul-jamo
 xpinyin
 python-telegram-bot
+fugashi
+unidic-lite

@@ -1,14 +1,28 @@
 import pandas as pd
-from fugashi import Tagger
 from pykakasi import kakasi
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 import nest_asyncio
 import asyncio
 import unicodedata
-import pandas as pd
-from fugashi import Tagger
-from pykakasi import kakasi
+
+try:
+    from fugashi import Tagger
+except ModuleNotFoundError:
+    Tagger = None
+
+_tagger = None
+
+
+def get_tagger():
+    global _tagger
+    if Tagger is None:
+        raise ModuleNotFoundError(
+            "fugashi is required for Japanese transliteration. Install fugashi in the environment."
+        )
+    if _tagger is None:
+        _tagger = Tagger()
+    return _tagger
 
 
 # ==========================
@@ -35,10 +49,11 @@ def load_mapping(excel_path):
 
 
 
-tagger = Tagger()
 kks = kakasi()
 
+
 def japanese_to_romaji(text):
+    tagger = get_tagger()
     tokens = list(tagger(text))
     romaji_words = []
     i = 0
