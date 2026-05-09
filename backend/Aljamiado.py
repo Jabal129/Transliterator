@@ -1,6 +1,7 @@
 import re
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from punctuation_helper import preserve_and_process
 
 # Define the Spanish to Aljamiado mapping
 def convert_to_aljamiado(spanish_text):
@@ -135,8 +136,7 @@ def convert_to_aljamiado(spanish_text):
         return converted_word
 
 
-    # Process the input text word by word
-    words = spanish_text.split()
-    aljamiado_text = ' '.join(process_word(word) for word in words)
+    # Process the input text word by word, preserving punctuation
+    aljamiado_text = preserve_and_process(spanish_text, process_word)
 
     return aljamiado_text
