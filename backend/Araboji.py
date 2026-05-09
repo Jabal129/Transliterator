@@ -40,7 +40,22 @@ def load_mapping(excel_path):
     df["Romaji"] = df["Romaji"].astype(str).str.strip().str.lower()
     df["Arabic"] = df["Arabic"].astype(str).str.strip()
 
-    mapping = dict(zip(df["Romaji"], df["Arabic"]))
+    def is_arabic_text(value):
+        return any(
+            0x0600 <= ord(ch) <= 0x06FF or
+            0x0750 <= ord(ch) <= 0x077F or
+            0x08A0 <= ord(ch) <= 0x08FF
+            for ch in value
+        )
+
+    mapping = {}
+    for romaji, arabic in zip(df["Romaji"], df["Arabic"]):
+        if not romaji:
+            continue
+        if romaji not in mapping or not is_arabic_text(mapping[romaji]):
+            if is_arabic_text(arabic):
+                mapping[romaji] = arabic
+
     return mapping
 
 
