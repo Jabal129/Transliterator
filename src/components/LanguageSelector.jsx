@@ -1,9 +1,9 @@
 const LANGUAGES = [
-  { value: 'الإسبانية',   label: 'الإسبانية',  latin: 'Español'    },
-  { value: 'الصينية',    label: 'الصينية',   latin: 'Chinese'    },
-  { value: 'اليابانية',  label: 'اليابانية',  latin: 'Japanese'   },
-  { value: 'الكورية',    label: 'الكورية',   latin: 'Korean'     },
-  { value: 'الفيتنامية', label: 'الفيتنامية', latin: 'Vietnamese' },
+  { value: 'aljamiado',      label: 'الإسبانية',  latin: 'Español'    },
+  { value: 'xiaoerjing',     label: 'الصينية',   latin: 'Chinese'    },
+  { value: 'araboji',        label: 'اليابانية',  latin: 'Japanese'   },
+  { value: 'soagyeong',      label: 'الكورية',   latin: 'Korean'     },
+  { value: 'tieunhikinh',    label: 'الفيتنامية', latin: 'Vietnamese' },
 ]
 
 export default function LanguageSelector({ value, onChange }) {
