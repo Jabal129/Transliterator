@@ -47,7 +47,8 @@ def load_araboji():
 
 def araboji_text(text):
     func, mapping = load_araboji()
-    return func(text, mapping)
+    _romaji, arabic = func(text, mapping)  # unpack tuple, discard romaji
+    return arabic
 
 
 languages = {
