@@ -8,3 +8,4 @@ xpinyin
 python-telegram-bot
 fugashi
 unidic-lite
+nest_asyncio
