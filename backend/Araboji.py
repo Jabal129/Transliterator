@@ -179,7 +179,7 @@ def arabize_romaji(romaji_text, mapping):
 def japanese_to_arabic(text, mapping):
     romaji = japanese_to_romaji(text)
     arabic = arabize_romaji(romaji, mapping)
-    arabic = re.sub(r"n([ًٌٍ])", r"ن\1", arabic)
+    arabic = re.sub(r"n(?=[\u064B-\u0652])", "ن", arabic)
     return romaji, arabic
 
 
