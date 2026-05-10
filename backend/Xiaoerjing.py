@@ -2,7 +2,6 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 from xpinyin import Pinyin
 import re
-from punctuation_helper import preserve_and_process
 
 # Mapping for Pinyin to Arabic words
 pinyin_to_arabic = {
@@ -131,34 +130,35 @@ pinyin_to_arabic = {
 western_to_arabic = {'1': '١', '2': '٢', '3': '٣', '4': '۴', '5': '۵',
                      '6': '٦', '7': '٧', '8': '٨', '9': '٩', '0': '٠'}
 
-def combine_pinyin_with_tones_word(chinese_word):
-    """Process a single Chinese word (without punctuation)."""
+def pinyin_to_arabic_translation(chinese_text):
     p = Pinyin()
-    pinyin_list = p.get_pinyin(chinese_word, ' ').split()
-    pinyin_with_tones_str = p.get_pinyin(chinese_word, tone_marks='numbers')
-    tone_parts = pinyin_with_tones_str.split('-')
-    
+    pinyin = p.get_pinyin(chinese_text, ' ').split()
     arabic_words = []
-    for word in pinyin_list:
+    for word in pinyin:
         if word.isdigit():
             arabic_words.append(word)
         else:
             arabic_words.append(pinyin_to_arabic.get(word, ""))
-    
+    arabic_sentence = " ".join(arabic_words)
+    return arabic_sentence
+
+def extract_tone_numbers(chinese_text):
+    p = Pinyin()
+    pinyin_with_tones = p.get_pinyin(chinese_text, tone_marks='numbers')
     tone_numbers = []
-    for word in tone_parts:
+    for word in pinyin_with_tones.split('-'):
         tone_number = ''.join([western_to_arabic[char] if char in western_to_arabic else '' for char in word])
         tone_numbers.append(tone_number)
-    
-    min_length = min(len(arabic_words), len(tone_numbers))
-    arabic_words = arabic_words[:min_length]
-    tone_numbers = tone_numbers[:min_length]
-    combined = [f"{word}{tone}" for word, tone in zip(arabic_words, tone_numbers)]
-    return ''.join(combined)
+    return tone_numbers
 
 def combine_pinyin_with_tones(chinese_text):
-    """Process entire text while preserving punctuation."""
-    return preserve_and_process(chinese_text, combine_pinyin_with_tones_word)
+    words = pinyin_to_arabic_translation(chinese_text).split()
+    tones = extract_tone_numbers(chinese_text)
+    min_length = min(len(words), len(tones))
+    words = words[:min_length]
+    tones = tones[:min_length]
+    combined = [f"{word}{tone}" for word, tone in zip(words, tones)]
+    return ' '.join(combined)
 
 def clean_string(input_string):
     # Regular expression to match Indo-Arabic numerals from both sets
