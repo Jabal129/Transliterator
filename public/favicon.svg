@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Background with rounded square -->
+  <rect width="64" height="64" rx="12" fill="#1a1209"/>
+
+  <!-- Geometric star pattern (8-pointed) -->
+  <polygon points="32,6 36,24 50,14 40,28 58,32 40,36 50,50 36,40 32,58 28,40 14,50 24,36 6,32 24,28 14,14 28,24"
+    fill="none" stroke="#b8860b" stroke-width="1.2" opacity="0.5"/>
+
+  <!-- Inner diamond -->
+  <polygon points="32,16 44,32 32,48 20,32"
+    fill="none" stroke="#c9a84c" stroke-width="1" opacity="0.6"/>
+
+  <!-- Arabic letter ن (nun) centered -->
+  <text x="32" y="42"
+    font-family="Scheherazade New, Amiri, serif"
+    font-size="28"
+    font-weight="700"
+    fill="#d4a827"
+    text-anchor="middle"
+    dominant-baseline="auto">ن</text>
+</svg>
