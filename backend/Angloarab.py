@@ -59,13 +59,32 @@ def _parse_cmudict_file(path):
     return d
 
 def _build_dict():
-    # 1. pronouncing library — simple direct delegation, no internal magic
+    # 1. pronouncing + g2p fallback
     try:
         import pronouncing
+        from g2p_en import G2p
+
+        g2p = G2p()
+
         def lookup(word):
-            return pronouncing.phones_for_word(word.lower())
-        print("[CMU: using 'pronouncing' library]")
+            word = word.lower()
+
+            # First try CMUdict
+            phones = pronouncing.phones_for_word(word)
+
+            if phones:
+                return phones
+
+            # Fallback: predict pronunciation
+            predicted = " ".join(g2p(word))
+
+            print(f"[G2P fallback] {word} -> {predicted}")
+
+            return [predicted]
+
+        print("[CMU: using 'pronouncing' + g2p fallback]")
         return lookup
+
     except ImportError:
         pass
 
