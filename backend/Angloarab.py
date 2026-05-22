@@ -1,16 +1,15 @@
 # English → Arabized Script transliterator
 # Requires: pip install pronouncing
-
-try:
-    import pronouncing
-    _HAS_PRONOUNCING = True
-except ImportError:
-    _HAS_PRONOUNCING = False
+# OR: run once with internet to auto-download the CMU dict (~4MB, cached locally)
 
 import re
+import os
 
-# ── Mini dictionary for offline demo ─────────────────────────────────────────
+# ── Mini fallback dictionary (defined first so _build_dict can reference it) ─
+
 _MINI_CMU = {
+    "big":     ["B IH1 G"],
+    "small":   ["S M AO1 L"],
     "comma":   ["K AA1 M AH0"],
     "hut":     ["HH AH1 T"],
     "hat":     ["HH AE1 T"],
@@ -19,120 +18,104 @@ _MINI_CMU = {
     "hot":     ["HH AA1 T"],
     "hello":   ["HH AH0 L OW1"],
     "world":   ["W ER1 L D"],
-    "python":  ["P AY1 TH AH0 N"],
-    "apple":   ["AE1 P AH0 L"],
-    "edit":    ["EH1 D AH0 T"],
-    "open":    ["OW1 P AH0 N"],
-    "unit":    ["Y UW1 N AH0 T"],
     "the":     ["DH AH0", "DH IY0"],
-    "cat":     ["K AE1 T"],
-    "bat":     ["B AE1 T"],
-    "bit":     ["B IH1 T"],
-    "boot":    ["B UW1 T"],
-    "book":    ["B UH1 K"],
-    "bird":    ["B ER1 D"],
-    "boy":     ["B OY1"],
-    "cow":     ["K AW1"],
-    "bite":    ["B AY1 T"],
-    "i":       ["AY1"],
     "a":       ["AH0", "EY1"],
+    "i":       ["AY1"],
     "is":      ["IH1 Z"],
-    "it":      ["IH1 T"],
-    "in":      ["IH0 N"],
-    "on":      ["AO1 N", "AH0 N"],
     "and":     ["AE1 N D"],
-    "this":    ["DH IH1 S"],
-    "that":    ["DH AE1 T"],
-    "with":    ["W IH1 DH"],
-    "for":     ["F AO1 R"],
-    "of":      ["AH1 V"],
+    "she":     ["SH IY1"],
+    "my":      ["M AY1"],
+    "can":     ["K AE1 N"],
+    "you":     ["Y UW1"],
+    "go":      ["G OW1"],
     "to":      ["T UW1"],
     "have":    ["HH AE1 V"],
-    "you":     ["Y UW1"],
-    "he":      ["HH IY1"],
-    "she":     ["SH IY1"],
-    "we":      ["W IY1"],
-    "they":    ["DH EY1"],
-    "my":      ["M AY1"],
-    "your":    ["Y AO1 R"],
-    "from":    ["F R AH1 M"],
-    "not":     ["N AA1 T"],
-    "but":     ["B AH1 T"],
-    "or":      ["AO1 R"],
-    "an":      ["AE1 N"],
-    "at":      ["AE1 T"],
-    "be":      ["B IY1"],
-    "do":      ["D UW1"],
-    "go":      ["G OW1"],
-    "so":      ["S OW1"],
-    "no":      ["N OW1"],
-    "me":      ["M IY1"],
-    "was":     ["W AH1 Z"],
-    "are":     ["AA1 R"],
-    "can":     ["K AE1 N"],
-    "will":    ["W IH1 L"],
+    "cat":     ["K AE1 T"],
+    "bird":    ["B ER1 D"],
+    "open":    ["OW1 P AH0 N"],
+    "market":  ["M AA1 R K AH0 T"],
     "one":     ["W AH1 N"],
     "two":     ["T UW1"],
     "three":   ["TH R IY1"],
-    "four":    ["F AO1 R"],
-    "five":    ["F AY1 V"],
-    "six":     ["S IH1 K S"],
-    "seven":   ["S EH1 V AH0 N"],
-    "eight":   ["EY1 T"],
-    "nine":    ["N AY1 N"],
-    "ten":     ["T EH1 N"],
-    "market":  ["M AA1 R K AH0 T"],
 }
 
+# ── CMU dictionary loader (runs once at import time) ──────────────────────────
+
+_CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cmudict.txt")
+_CMU_URL    = "https://raw.githubusercontent.com/cmusphinx/cmudict/master/cmudict.dict"
+
+def _parse_cmudict_file(path):
+    d = {}
+    with open(path, encoding="latin-1") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith(";;;"):
+                continue
+            parts = line.split(None, 1)
+            if len(parts) < 2:
+                continue
+            key = re.sub(r'\(\d+\)$', '', parts[0]).lower()
+            d.setdefault(key, []).append(parts[1].strip())
+    return d
+
+def _build_dict():
+    # 1. pronouncing library — simple direct delegation, no internal magic
+    try:
+        import pronouncing
+        def lookup(word):
+            return pronouncing.phones_for_word(word.lower())
+        print("[CMU: using 'pronouncing' library]")
+        return lookup
+    except ImportError:
+        pass
+
+    # 2. locally cached plain-text CMU dict file
+    if os.path.exists(_CACHE_PATH):
+        d = _parse_cmudict_file(_CACHE_PATH)
+        print(f"[CMU: loaded from cache ({len(d):,} entries)]")
+        return d.get
+
+    # 3. auto-download once, then cache
+    try:
+        import urllib.request
+        print(f"[CMU: downloading dict → {_CACHE_PATH} ...]")
+        urllib.request.urlretrieve(_CMU_URL, _CACHE_PATH)
+        d = _parse_cmudict_file(_CACHE_PATH)
+        print(f"[CMU: downloaded and cached ({len(d):,} entries)]")
+        return d.get
+    except Exception as e:
+        print(f"[CMU: download failed ({e})]")
+
+    # 4. built-in mini-dict as last resort
+    print("[CMU: WARNING — using mini-dictionary. Install 'pronouncing' for full coverage.]")
+    return _MINI_CMU.get
+
+# Build once at import time
+_lookup = _build_dict()
+
 def _phones_for_word(word):
-    if _HAS_PRONOUNCING:
-        return pronouncing.phones_for_word(word)
-    return _MINI_CMU.get(word.lower(), [])
+    result = _lookup(word.lower())
+    return result if result else []
 
 # ── Mapping tables ────────────────────────────────────────────────────────────
 
 CONSONANTS = {
-    "B":  "ب",
-    "CH": "چ",
-    "D":  "د",
-    "DH": "ذ",
-    "F":  "ف",
-    "G":  "غ",
-    "HH": "ح",
-    "JH": "ج",
-    "K":  "ك",
-    "L":  "ل",
-    "M":  "م",
-    "N":  "ن",
-    "NG": "ڭ",
-    "P":  "پ",
-    "R":  "ر",
-    "S":  "س",
-    "SH": "ش",
-    "T":  "ت",
-    "TH": "ث",
-    "V":  "ڤ",
-    "W":  "و",
-    "Y":  "ي",
-    "Z":  "ز",
-    "ZH": "ژ",
+    "B":  "ب",  "CH": "چ",  "D":  "د",  "DH": "ذ",
+    "F":  "ف",  "G":  "غ",  "HH": "ح",  "JH": "ج",
+    "K":  "ك",  "L":  "ل",  "M":  "م",  "N":  "ن",
+    "NG": "ڭ",  "P":  "پ",  "R":  "ر",  "S":  "س",
+    "SH": "ش",  "T":  "ت",  "TH": "ث",  "V":  "ڤ",
+    "W":  "و",  "Y":  "ي",  "Z":  "ز",  "ZH": "ژ",
 }
 
 VOWELS = {
-    "AA": ("آ",   "َا"),
-    "AE": ("أَ",  "َ"),
-    "AH": ("عَ",  "َ"),
-    "AO": ("أو",  "ُو"),
-    "AW": ("أَو", "َو"),
-    "AY": ("أَي", "َي"),
-    "EH": ("إِ",  "ِ"),
-    "ER": ("عِر", "ِر"),
-    "EY": ("إي",  "ِي"),
-    "IH": ("إِ",  "ِ"),
-    "IY": ("إي",  "ِي"),
-    "OW": ("أو",  "ُو"),
-    "OY": ("أوي", "ُوي"),
-    "UH": ("أُ",  "ُ"),
+    "AA": ("آ",   "َا"),   "AE": ("أَ",  "َ"),
+    "AH": ("عَ",  "َ"),    "AO": ("أو",  "ُو"),
+    "AW": ("أَو", "َو"),   "AY": ("أَي", "َي"),
+    "EH": ("إِ",  "ِ"),    "ER": ("عِر", "ِر"),
+    "EY": ("إي",  "ِي"),   "IH": ("إِ",  "ِ"),
+    "IY": ("إي",  "ِي"),   "OW": ("أو",  "ُو"),
+    "OY": ("أوي", "ُوي"),  "UH": ("أُ",  "ُ"),
     "UW": ("أُو", "ُو"),
 }
 
@@ -149,21 +132,15 @@ def phones_to_arabic(phones_str):
 
     for phone in phones:
         base = strip_stress(phone)
-
         if base in CONSONANTS:
             result.append(CONSONANTS[base])
             prev_was_consonant = True
             is_first = False
-
         elif base in VOWELS:
             initial, medial = VOWELS[base]
-            if is_first or not prev_was_consonant:
-                result.append(initial)
-            else:
-                result.append(medial)
+            result.append(initial if (is_first or not prev_was_consonant) else medial)
             prev_was_consonant = False
             is_first = False
-
         else:
             result.append(f"[{base}]")
             prev_was_consonant = False
@@ -173,59 +150,43 @@ def phones_to_arabic(phones_str):
 
 # ── Punctuation handling ──────────────────────────────────────────────────────
 
-# Splits a token into (leading_punct, word, trailing_punct)
-# Word may contain apostrophes and hyphens (can't, well-known)
 _PUNCT_RE = re.compile(r"^([^\w]*)([a-zA-Z][a-zA-Z'\-]*)([^\w]*)$")
 
 def _split_token(token):
-    """Return (pre_punct, word, post_punct) or (token, None, '') if no word."""
     m = _PUNCT_RE.match(token)
     if m:
         return m.group(1), m.group(2), m.group(3)
-    return token, None, ""   # pure punctuation token (e.g. --, ...)
+    return token, None, ""
 
 # ── Sentence transliterator ───────────────────────────────────────────────────
 
 def transliterate_sentence(text):
-    """
-    Transliterate a full sentence to Arabized script.
-
-    - Word order and spacing are preserved.
-    - Only the first CMU pronunciation is used (direct transliteration).
-    - Punctuation is detached from each word, the bare word is converted,
-      then punctuation is re-attached at the same position.
-    - Pure-punctuation tokens (e.g. --, ...) are passed through unchanged.
-    - Unknown words are left in Latin script with a [?] marker.
-    """
     tokens = text.split()
     output_tokens = []
-
     for token in tokens:
         pre, word, post = _split_token(token)
-
         if word is None:
-            # Pure punctuation — pass through as-is
             output_tokens.append(pre)
             continue
-
         pronunciations = _phones_for_word(word)
         if pronunciations:
-            arabic = phones_to_arabic(pronunciations[0])
-            output_tokens.append(pre + arabic + post)
+            output_tokens.append(pre + phones_to_arabic(pronunciations[0]) + post)
         else:
             output_tokens.append(pre + word + "[?]" + post)
-
     return " ".join(output_tokens)
 
 # ── Demo ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    mode = "pronouncing" if _HAS_PRONOUNCING else "built-in mini-dictionary"
-    print(f"[Using {mode}]\n")
-
+    print()
     sentences = [
-        "intercontinental championship"
+        "comma hut hat hate heat hot",
+        "Hello, world!",
+        "I have a big cat, and she is my bird.",
+        "Can you go to the open market?",
+        "One, two, three -- go!",
     ]
-
     for s in sentences:
-        print(transliterate_sentence(s))
+        print(f"EN: {s}")
+        print(f"AR: {transliterate_sentence(s)}")
+        print()
