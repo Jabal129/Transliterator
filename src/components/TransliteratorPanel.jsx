@@ -5,7 +5,7 @@ import { transliterate } from '../services/transliterator.js'
 export default function TransliteratorPanel() {
   const [inputText, setInputText]   = useState('')
   const [outputText, setOutputText] = useState('')
-  const [language, setLanguage]     = useState('aljamiado')
+  const [language, setLanguage]     = useState('angloarab')
   const [loading, setLoading]       = useState(false)
   const [error, setError]           = useState(null)
   const [copied, setCopied]         = useState(false)

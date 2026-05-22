@@ -1,5 +1,5 @@
 const LANGUAGES = [
-    { value: 'angloarab',      label: 'الإنجليزية', latin: 'English'    },
+  { value: 'angloarab',      label: 'الإنجليزية', latin: 'English'    },
   { value: 'aljamiado',      label: 'الإسبانية',  latin: 'Español'    },
   { value: 'xiaoerjing',     label: 'الصينية',   latin: 'Chinese'    },
   { value: 'araboji',        label: 'اليابانية',  latin: 'Japanese'   },
