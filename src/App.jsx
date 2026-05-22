@@ -62,7 +62,7 @@ export default function App() {
               className="text-muted mt-3"
               style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', maxWidth: 420, margin: '0 auto' }}
             >
-              حوّل النصوص الإسبانية والصينية واليابانية والكورية والفيتنامية
+              حوّل النصوص الإنجليزية والإسبانية والصينية واليابانية والكورية والفيتنامية
               إلى ما يقابلها في الحروف العربية
             </p>
           </div>
@@ -77,7 +77,7 @@ export default function App() {
               style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', letterSpacing: '0.02em' }}
             >
               اللغات المدعومة:&nbsp;
-              {['الإسبانية', 'الصينية', 'اليابانية', 'الكورية', 'الفيتنامية'].map((l, i, arr) => (
+              {['الإنجليزية', 'الإسبانية', 'الصينية', 'اليابانية', 'الكورية', 'الفيتنامية'].map((l, i, arr) => (
                 <span key={l}>
                   <span style={{ color: 'var(--gold-muted)' }}>{l}</span>
                   {i < arr.length - 1 && ' · '}
