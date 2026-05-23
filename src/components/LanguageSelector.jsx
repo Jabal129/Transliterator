@@ -4,7 +4,8 @@ const LANGUAGES = [
   { value: 'xiaoerjing',     label: 'الصينية',   latin: 'Chinese'    },
   { value: 'araboji',        label: 'اليابانية',  latin: 'Japanese'   },
   { value: 'soagyeong',      label: 'الكورية',   latin: 'Korean'     },
-  { value: 'tieunhikinh',    label: 'الفيتنامية', latin: 'Vietnamese' }
+  { value: 'tieunhikinh',    label: 'الفيتنامية', latin: 'Vietnamese' },
+  { value: 'russoarab',      label: 'الروسية',    latin: 'Russian'    }
 ]
 
 export default function LanguageSelector({ value, onChange }) {

@@ -9,6 +9,7 @@ from Xiaoerjing import combine_pinyin_with_tones, clean_string
 from Soagyeong import korean_to_arabic, adjust_arabic_output
 from Tieunhikinh import transliterate_vietnamese_to_arabic
 from Angloarab import transliterate_sentence
+from Russoarab import russian_to_arabic
 
 app = FastAPI()
 
@@ -58,7 +59,9 @@ languages = {
     'araboji': araboji_text,
     'soagyeong': lambda text: adjust_arabic_output(korean_to_arabic(text)),
     'tieunhikinh': transliterate_vietnamese_to_arabic,
-    'angloarab': transliterate_sentence
+    'angloarab': transliterate_sentence,
+    'russoarab': russian_to_arabic
+
 }
 
 @app.post("/api/transliterate")
