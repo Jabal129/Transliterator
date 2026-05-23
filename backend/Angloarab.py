@@ -1,11 +1,12 @@
 # English → Arabized Script transliterator
 # Requires: pip install pronouncing
-# OR: run once with internet to auto-download the CMU dict (~4MB, cached locally)
+# Optional for unknown words: pip install g2p_en
+#   (also needs: python -m nltk.downloader averaged_perceptron_tagger_eng)
 
 import re
 import os
 
-# ── Mini fallback dictionary (defined first so _build_dict can reference it) ─
+# ── Mini fallback dictionary ──────────────────────────────────────────────────
 
 _MINI_CMU = {
     "big":     ["B IH1 G"],
@@ -39,7 +40,7 @@ _MINI_CMU = {
     "three":   ["TH R IY1"],
 }
 
-# ── CMU dictionary loader (runs once at import time) ──────────────────────────
+# ── CMU dictionary loader ─────────────────────────────────────────────────────
 
 _CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cmudict.txt")
 _CMU_URL    = "https://raw.githubusercontent.com/cmusphinx/cmudict/master/cmudict.dict"
@@ -59,42 +60,18 @@ def _parse_cmudict_file(path):
     return d
 
 def _build_dict():
-    # 1. pronouncing + g2p fallback
     try:
         import pronouncing
-        from g2p_en import G2p
-
-        g2p = G2p()
-
-        def lookup(word):
-            word = word.lower()
-
-            # First try CMUdict
-            phones = pronouncing.phones_for_word(word)
-
-            if phones:
-                return phones
-
-            # Fallback: predict pronunciation
-            predicted = " ".join(g2p(word))
-
-            print(f"[G2P fallback] {word} -> {predicted}")
-
-            return [predicted]
-
-        print("[CMU: using 'pronouncing' + g2p fallback]")
-        return lookup
-
+        print("[CMU: using 'pronouncing' library]")
+        return lambda word: pronouncing.phones_for_word(word.lower())
     except ImportError:
         pass
 
-    # 2. locally cached plain-text CMU dict file
     if os.path.exists(_CACHE_PATH):
         d = _parse_cmudict_file(_CACHE_PATH)
         print(f"[CMU: loaded from cache ({len(d):,} entries)]")
         return d.get
 
-    # 3. auto-download once, then cache
     try:
         import urllib.request
         print(f"[CMU: downloading dict → {_CACHE_PATH} ...]")
@@ -105,16 +82,58 @@ def _build_dict():
     except Exception as e:
         print(f"[CMU: download failed ({e})]")
 
-    # 4. built-in mini-dict as last resort
     print("[CMU: WARNING — using mini-dictionary. Install 'pronouncing' for full coverage.]")
     return _MINI_CMU.get
 
-# Build once at import time
+# ── G2P fallback for words absent from CMUdict ────────────────────────────────
+
+def _build_g2p():
+    """
+    Try to load g2p_en. g2p_en requires an NLTK POS tagger internally.
+    We auto-download it silently if missing rather than crashing.
+    """
+    try:
+        # Pre-download the NLTK resource g2p_en needs, silently.
+        import nltk
+        try:
+            nltk.data.find("taggers/averaged_perceptron_tagger_eng")
+        except LookupError:
+            print("[G2P: downloading required NLTK tagger (one-time) ...]")
+            nltk.download("averaged_perceptron_tagger_eng", quiet=True)
+
+        from g2p_en import G2p
+        g2p = G2p()
+
+        def predict(word):
+            phones = g2p(word.lower())
+            result = " ".join(p for p in phones if p.strip())
+            return [result] if result else []
+
+        print("[G2P: g2p_en ready — unknown words will be predicted]")
+        return predict
+
+    except ImportError as e:
+        missing = "g2p_en" if "g2p_en" in str(e) else "nltk"
+        print(f"[G2P: '{missing}' not installed — unknown words marked [?]]")
+        print(f"[     pip install g2p_en                                   ]")
+        return None
+
+    except Exception as e:
+        print(f"[G2P: failed to load ({e}) — unknown words marked [?]]")
+        return None
+
 _lookup = _build_dict()
+_g2p    = _build_g2p()
 
 def _phones_for_word(word):
     result = _lookup(word.lower())
-    return result if result else []
+    if result:
+        return result
+    if _g2p is not None:
+        predicted = _g2p(word)
+        if predicted:
+            return predicted
+    return []
 
 # ── Mapping tables ────────────────────────────────────────────────────────────
 
@@ -202,8 +221,8 @@ if __name__ == "__main__":
         "comma hut hat hate heat hot",
         "Hello, world!",
         "I have a big cat, and she is my bird.",
-        "Can you go to the open market?",
-        "One, two, three -- go!",
+        "This is a transliteration of English into Arabic script.",
+        "The algorithm processes neologisms automatically.",
     ]
     for s in sentences:
         print(f"EN: {s}")
