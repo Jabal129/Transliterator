@@ -9,4 +9,6 @@ python-telegram-bot
 fugashi
 unidic-lite
 nest_asyncio
-
+pronouncing
+g2p_en
+nltk
