@@ -134,6 +134,7 @@ def arabize_romaji(romaji_text, mapping):
 
         result_words.append(arabic_word)
 
+    result_words = result_words.replace("'", "")  # delete apostrophes if they exist in mapping values
     return " ".join(result_words)
 
 
