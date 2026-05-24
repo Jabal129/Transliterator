@@ -10,6 +10,7 @@ from Soagyeong import korean_to_arabic, adjust_arabic_output
 from Tieunhikinh import transliterate_vietnamese_to_arabic
 from Angloarab import transliterate_sentence
 from Russoarab import russian_to_arabic
+from Francospanish import FrenchHispanicizer
 
 app = FastAPI()
 
@@ -52,6 +53,11 @@ def araboji_text(text):
     _romaji, arabic = func(text, mapping)  # unpack tuple, discard romaji
     return arabic
 
+def Francoaljamiado_text(text):
+    hispanicizer = FrenchHispanicizer()
+    Aljamiado = convert_to_aljamiado(hispanicizer.convert(text))
+    return Aljamiado
+
 
 languages = {
     'aljamiado': convert_to_aljamiado,
@@ -60,7 +66,8 @@ languages = {
     'soagyeong': lambda text: adjust_arabic_output(korean_to_arabic(text)),
     'tieunhikinh': transliterate_vietnamese_to_arabic,
     'angloarab': transliterate_sentence,
-    'russoarab': russian_to_arabic
+    'russoarab': russian_to_arabic,
+    'francoarab': Francoaljamiado_text,
 
 }
 
