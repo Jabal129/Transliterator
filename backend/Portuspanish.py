@@ -26,6 +26,7 @@ class PortugueseToSpanishTransliterator:
             Rule(re.compile(r'ção\b', re.IGNORECASE), 'zao'),
             Rule(re.compile(r'sões\b', re.IGNORECASE), 'soes'),
             Rule(re.compile(r'são\b', re.IGNORECASE), 'sao'),
+            
 
             #
             # Stage 2 — Nasal vowels
@@ -34,6 +35,7 @@ class PortugueseToSpanishTransliterator:
             Rule(re.compile(r'ão\b', re.IGNORECASE), 'ao'),
             Rule(re.compile(r'ãe', re.IGNORECASE), 'ae'),
             Rule(re.compile(r'õe', re.IGNORECASE), 'oe'),
+            Rule(re.compile(r'uai', re.IGNORECASE), 'uay'),
 
             Rule(re.compile(r'am\b', re.IGNORECASE), 'an'),
             Rule(re.compile(r'em\b', re.IGNORECASE), 'en'),
