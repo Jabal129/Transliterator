@@ -11,6 +11,7 @@ from Tieunhikinh import transliterate_vietnamese_to_arabic
 from Angloarab import transliterate_sentence
 from Russoarab import russian_to_arabic
 from Francospanish import FrenchHispanicizer
+from Hindustani import hindi_to_arabic
 
 app = FastAPI()
 
@@ -68,7 +69,7 @@ languages = {
     'angloarab': transliterate_sentence,
     'russoarab': russian_to_arabic,
     'francoarab': Francoaljamiado_text,
-
+    'hindustani': hindi_to_arabic,
 }
 
 @app.post("/api/transliterate")

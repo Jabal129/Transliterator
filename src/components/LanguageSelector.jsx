@@ -6,7 +6,8 @@ const LANGUAGES = [
   { value: 'araboji',        label: 'اليابانية',  latin: 'Japanese'   },
   { value: 'soagyeong',      label: 'الكورية',   latin: 'Korean'     },
   { value: 'tieunhikinh',    label: 'الفيتنامية', latin: 'Vietnamese' },
-  { value: 'russoarab',      label: 'الروسية',    latin: 'Russian'    }
+  { value: 'russoarab',      label: 'الروسية',    latin: 'Russian'    },
+  { value: 'hindustani',     label: 'الهندية',    latin: 'Hindi'      },
 ]
 
 export default function LanguageSelector({ value, onChange }) {

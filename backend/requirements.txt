@@ -12,3 +12,4 @@ nest_asyncio
 pronouncing
 g2p_en
 nltk
+aksharamukha
