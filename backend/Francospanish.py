@@ -158,9 +158,9 @@ class FrenchHispanicizer:
         # gn → ñ  (/ɲ/)
         (r"gn", "ñ"),
         # qu before front vowels: keep qu (Spanish convention)
-        (r"qu(?=[ei])", "qu"),
+        (r"qu(?=[aouâàôùû])", "cu"),
         # qu before back vowels/consonants: cu
-        (r"qu", "cu"),
+        (r"qu(?=[ei])", "qu"),
         # gu before e/i (French /g/, silent u): drop u → g
         (r"gu(?=[ei])", "g"),
         # ge, gi → ye, yi  (/ʒ/ → y)
