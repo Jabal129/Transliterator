@@ -98,6 +98,7 @@ def russian_to_arabic(text):
     result = []
     prev_was_consonant = False
     is_word_start = True
+    text = text.replace('́', '')  # Remove stress marks for simplicity; can be handled separately if needed
 
     for char in text.lower():
         if char in CONSONANTS:
