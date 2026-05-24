@@ -45,6 +45,7 @@ class PortugueseToSpanishTransliterator:
             #
             Rule(re.compile(r'nh', re.IGNORECASE), 'ñ'),
             Rule(re.compile(r'lh', re.IGNORECASE), 'll'),
+            Rule(re.compile(r'v', re.IGNORECASE), 'vv'), # to be post-processed into 'v' or 'b' depending on context
 
             #
             # Stage 4 — Cedilla
