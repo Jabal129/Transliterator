@@ -241,7 +241,7 @@ class FrenchHispanicizer:
         """
         words = text.split()
         converted = [self._convert_word(w) for w in words]
-        return " ".join(converted)
+        return " ".join(converted).replace("'", "")
 
     def convert_with_steps(self, word: str) -> list[tuple[str, str]]:
         """
