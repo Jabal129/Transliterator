@@ -190,7 +190,7 @@ class FrenchHispanicizer:
         (r"ill(?=[aeiou])", "ll"),
         (r"ille$", "ille"),
         (r"ill$", "ill"),
-        (r"v", "ww"), # temporary placeholder to protect 'v' from being replaced by 'b' in the next pass
+        (r"v", "vv"), # temporary placeholder to protect 'v' from being replaced by 'b' in the next pass
         # h (always silent in French) → delete (but NOT the ch placeholder)
         (r"(?<!\x01C)h(?!\x01)", ""),
     ]
