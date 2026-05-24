@@ -69,17 +69,11 @@ class PortugueseToSpanishTransliterator:
             Rule(re.compile(r'À'), 'A'),
             Rule(re.compile(r'Ã'), 'A'),
             Rule(re.compile(r'Õ'), 'O'),
+            Rule(re.compile(r'ou', re.IGNORECASE), 'ow'),
+            Rule(re.compile(r'ph', re.IGNORECASE), 'f'),
+            Rule(re.compile(r'th', re.IGNORECASE), 't'),
         ]
 
-        #
-        # Optional aggressive Hispanicization
-        #
-        if aggressive:
-            self.rules.extend([
-                Rule(re.compile(r'ou', re.IGNORECASE), 'o'),
-                Rule(re.compile(r'ph', re.IGNORECASE), 'f'),
-                Rule(re.compile(r'th', re.IGNORECASE), 't'),
-            ])
 
     def transliterate(self, text: str) -> str:
         """
