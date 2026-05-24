@@ -102,7 +102,7 @@ def arabize_romaji(romaji_text, mapping):
 
     # Split by spaces to handle word-by-word
     words = romaji_text.split(" ")
-
+    
     for word in words:
         i = len(word) - 1  # Start from last letter
         arabic_word = ""
@@ -134,8 +134,7 @@ def arabize_romaji(romaji_text, mapping):
 
         result_words.append(arabic_word)
 
-    result_words = result_words.replace("'", "")  # delete apostrophes if they exist in mapping values
-    return " ".join(result_words)
+    return " ".join(result_words).replace("'", "")
 
 
 # ==========================
