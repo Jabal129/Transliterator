@@ -138,13 +138,13 @@ class FrenchHispanicizer:
     ]
     # Pass 4: Remaining single-character rules
     # ------------------------------------------------------------------
-    SINGLE_CHAR_RULES: list[tuple[str, str]] = [
-        # z → s  (French /z/)
-        (r"z", "s"),
-        # y (vowel, between consonants) stays y
-        # k stays k
-        # No further single-char rules needed for remaining consonants
-    ]
+    # SINGLE_CHAR_RULES: list[tuple[str, str]] = [
+    #     # z → s  (French /z/)
+    #     (r"z", "s"),
+    #     # y (vowel, between consonants) stays y
+    #     # k stays k
+    #     # No further single-char rules needed for remaining consonants
+    # ]
 
     # ------------------------------------------------------------------
     # Pass 3: Consonant clusters and digraphs
