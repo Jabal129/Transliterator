@@ -12,6 +12,7 @@ from Angloarab import transliterate_sentence
 from Russoarab import russian_to_arabic
 from Francospanish import FrenchHispanicizer
 from Hindustani import hindi_to_arabic
+from Portuspanish import PortugueseToSpanishTransliterator
 
 app = FastAPI()
 
@@ -59,6 +60,12 @@ def Francoaljamiado_text(text):
     Aljamiado = convert_to_aljamiado(hispanicizer.convert(text))
     return Aljamiado
 
+def Aljamia_text(text):
+    converter = PortugueseToSpanishTransliterator()
+    Spanish = converter.transliterate(text)
+    Aljamiado = convert_to_aljamiado(Spanish)
+    return Aljamiado
+
 
 languages = {
     'aljamiado': convert_to_aljamiado,
@@ -69,6 +76,7 @@ languages = {
     'angloarab': transliterate_sentence,
     'russoarab': russian_to_arabic,
     'francoarab': Francoaljamiado_text,
+    'portuspanish': Aljamia_text,
     'hindustani': hindi_to_arabic,
 }
 

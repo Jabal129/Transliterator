@@ -2,6 +2,7 @@ const LANGUAGES = [
   { value: 'angloarab',      label: 'الإنجليزية', latin: 'English'    },
   { value: 'francoarab',     label: 'الفرنسية',   latin: 'French'     },
   { value: 'aljamiado',      label: 'الإسبانية',  latin: 'Español'    },
+  { value: 'portuspanish',   label: 'البرتغالية', latin: 'Português'  },
   { value: 'xiaoerjing',     label: 'الصينية',   latin: 'Chinese'    },
   { value: 'araboji',        label: 'اليابانية',  latin: 'Japanese'   },
   { value: 'soagyeong',      label: 'الكورية',   latin: 'Korean'     },
