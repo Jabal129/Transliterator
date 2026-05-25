@@ -111,6 +111,9 @@ class FrenchHispanicizer:
         # -eil → ey  (/ɛj/ → ey)
         (r"eil", "ell"),
         # -uil → oy  (/ɥj/)
+        (r"huile", "huil"),
+        (r"huit", "huit"),
+        # -uil → oy  (/ɥj/)
         (r"uil", "oll"),
         # ai / ei → e
         (r"ai", "e"),
@@ -118,7 +121,7 @@ class FrenchHispanicizer:
         # oi → ua  (/wa/ diphthong)
         (r"oi", "ua"),
         # ou → u
-        (r"oui", "ui"),         # 'oui' /wi/ → ui
+        (r"oui", "hui"),         # 'oui' /wi/ → ui
         (r"ou", "u"),
         # eu / œu — distinguish open vs closed syllable
         (r"œu", "e"),           # bœuf → bef (always /œ/)
