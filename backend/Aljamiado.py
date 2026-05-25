@@ -74,7 +74,9 @@ def convert_to_aljamiado(spanish_text):
         word = re.sub(r'[gG]ua', 'قْوَ', word)
         word = re.sub(r'[gG]üe', 'قْوَا', word)
         word = re.sub(r'[gG]üi', 'قْوِ', word)
-        # word = re.sub(r'[hH]u', 'و', word)
+        word = re.sub(r'[hH]ui', 'وِ', word)
+        word = re.sub(r'[hH]ue', 'وَا', word)
+        word = re.sub(r'[hH]ua', 'وَ', word)
 
         # if word.startswith('[hH]'):
         #     word = 'ا' + word[1:]  # Replace initial 'h' with Alif
