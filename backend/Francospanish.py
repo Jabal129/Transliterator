@@ -192,7 +192,7 @@ class FrenchHispanicizer:
         (r"ill$", "ill"),
         (r"v", "vv"), # temporary placeholder to protect 'v' from being replaced by 'b' in the next pass
         # h (always silent in French) → delete (but NOT the ch placeholder)
-        (r"(?<!\x01C)h(?!\x01)", ""),
+        (r"(?<!\x01C)h(?!\x01)", "h"),
     ]
 
     # ------------------------------------------------------------------
