@@ -111,8 +111,8 @@ class FrenchHispanicizer:
         # -eil → ey  (/ɛj/ → ey)
         (r"eil", "ell"),
         # -uil → oy  (/ɥj/)
-        (r"huile", "huil"),
-        (r"huit", "huit"),
+        (r"huile", "wil"),
+        (r"huit", "huite"),
         # -uil → oy  (/ɥj/)
         (r"uil", "oll"),
         # ai / ei → e
